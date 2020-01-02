@@ -110,7 +110,6 @@ class Server {
 	onError(error, request, response) {
 		const code = response.statusCode = error.code || error.status || error.statusCode || 500;
 		response.end(JSON.stringify({
-            code,
             message: (error.length && error) || error.message || http.STATUS_CODES[code]
         }));
 	}

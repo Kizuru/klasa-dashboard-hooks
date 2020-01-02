@@ -93,12 +93,12 @@ class Server {
 		request.query = info.query;
 
 		try {
-			await this.client.middlewares.run(request, response, route);
-			await (route ? route[METHODS_LOWER[request.method]](request, response) : this.onNoMatch(request, response));
-		} catch (err) {
-			this.client.emit('error', err);
-			this.onError(err, request, response);
-		}
+            await this.client.middlewares.run(request, response, route);
+            await (route && response.statusCode === 200 ? route[METHODS_LOWER[request.method]](request, response) : this.onError({ code: route ? response.statusCode : 404 }, request, response));
+        } catch (err) {
+            this.client.emit('error', err);
+            this.onError(err, request, response);
+        }
 	}
 
 	/**
@@ -109,7 +109,10 @@ class Server {
 	 */
 	onError(error, request, response) {
 		const code = response.statusCode = error.code || error.status || error.statusCode || 500;
-		response.end((error.length && error) || error.message || http.STATUS_CODES[code]);
+		response.end(JSON.stringify({
+            code,
+            message: (error.length && error) || error.message || http.STATUS_CODES[code]
+        }));
 	}
 
 }
